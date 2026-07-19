@@ -19,6 +19,14 @@ Import the module directly in a page, no bundler required:
 
 With a bundler, `import { McpGtwProvider } from "mcp-gtw-provider"` works the same way.
 
+## From the browser console
+
+Because it is a single dependency-free module, you can `import()` it straight into any open page's
+DevTools console, register tools that drive the DOM, and connect — turning any site into a provider.
+The gateway's [browser console guide](https://github.com/mcp-gtw/mcp-gtw/blob/main/docs/browser-console.md)
+walks through the whole recipe (minting a channel, allowing the origin, the paste-in snippet, and the
+CSP caveats).
+
 ## React
 
 Create the provider once, connect on mount, and disconnect on unmount. Register tools in effects so
