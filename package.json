@@ -1,0 +1,54 @@
+{
+    "name": "mcp-gtw-provider",
+    "version": "0.0.1",
+    "description": "Framework-agnostic browser provider for the mcp-gtw: publish and run your MCP tools from any web app over WebSocket.",
+    "type": "module",
+    "license": "MIT",
+    "keywords": [
+        "mcp",
+        "model-context-protocol",
+        "gateway",
+        "websocket",
+        "browser",
+        "tools",
+        "provider"
+    ],
+    "homepage": "https://github.com/mcp-gtw/mcp-gtw-provider",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mcp-gtw/mcp-gtw-provider.git"
+    },
+    "bugs": {
+        "url": "https://github.com/mcp-gtw/mcp-gtw-provider/issues"
+    },
+    "sideEffects": false,
+    "exports": {
+        ".": {
+            "types": "./types/index.d.ts",
+            "default": "./src/index.js"
+        }
+    },
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "types": "./types/index.d.ts",
+    "files": [
+        "src",
+        "types",
+        "README.md",
+        "LICENSE.md"
+    ],
+    "scripts": {
+        "lint": "biome check .",
+        "format": "biome check --write .",
+        "test": "vitest run",
+        "coverage": "vitest run --coverage"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.3.0",
+        "@vitest/coverage-v8": "^3.2.0",
+        "vitest": "^3.2.0"
+    }
+}
