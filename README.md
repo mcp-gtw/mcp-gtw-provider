@@ -43,8 +43,11 @@ No build step is required — it ships as ES modules. You can also import the fi
 ```javascript
 import { McpGtwProvider } from "mcp-gtw-provider";
 
+// the gateway hands you this token when it opens a channel for your app
+const token = await fetchGatewayToken();
+
 const provider = new McpGtwProvider({
-    url: "wss://your-gateway.example.com/provider?token=...",
+    url: `wss://your-gateway.example.com/provider?token=${token}`,
     onStatusChange: (status) => console.log("gateway:", status),
 });
 
