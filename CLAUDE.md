@@ -104,7 +104,9 @@ validated), then push a matching `v<version>` tag. `.github/workflows/release.ym
 equals the `package.json` version, runs lint + the coverage gate, and `npm publish --access public`.
 
 Publishing uses npm **Trusted Publishing** (OIDC) — no `NPM_TOKEN` secret. The workflow grants
-`id-token: write` and upgrades the npm CLI to `>= 11.5.1`; provenance is generated automatically.
+`id-token: write` and upgrades the npm CLI to `>= 11.5.1`, and provenance is generated automatically.
+It deliberately does **not** set `actions/setup-node`'s `registry-url`, because that writes an
+`.npmrc` with an (empty) `_authToken` that makes npm try token auth and skip OIDC (a 404 on publish).
 One-time setup on npmjs.com → the package's **Settings → Trusted Publisher**: organization
 `mcp-gtw`, repository `mcp-gtw-provider`, workflow `release.yml`, action `npm publish`. Then set
 **Publishing access** to "Require two-factor authentication and disallow tokens".
