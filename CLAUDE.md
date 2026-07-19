@@ -105,8 +105,12 @@ equals the `package.json` version, runs lint + the coverage gate, and `npm publi
 
 Publishing uses npm **Trusted Publishing** (OIDC) — no `NPM_TOKEN` secret. The workflow grants
 `id-token: write` and upgrades the npm CLI to `>= 11.5.1`, and provenance is generated automatically.
-It deliberately does **not** set `actions/setup-node`'s `registry-url`, because that writes an
-`.npmrc` with an (empty) `_authToken` that makes npm try token auth and skip OIDC (a 404 on publish).
-One-time setup on npmjs.com → the package's **Settings → Trusted Publisher**: organization
-`mcp-gtw`, repository `mcp-gtw-provider`, workflow `release.yml`, action `npm publish`. Then set
-**Publishing access** to "Require two-factor authentication and disallow tokens".
+The one-time setup on npmjs.com has **two separate parts** — both are required:
+
+1. **Trusted Publisher** → *Select your publisher* → **GitHub Actions**, then organization `mcp-gtw`,
+   repository `mcp-gtw-provider`, workflow `release.yml`, empty environment, allow `npm publish`, and
+   **Set up connection**. Without this, OIDC has nothing to authenticate against.
+2. **Publishing access** → "Require two-factor authentication and disallow tokens".
+
+Doing only step 2 disallows tokens while leaving OIDC unconfigured, so every publish fails with a
+404/`ENEEDAUTH` — configure the trusted publisher first.
