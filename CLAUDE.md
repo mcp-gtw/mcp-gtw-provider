@@ -41,9 +41,12 @@ framework. Do not add runtime dependencies.
    `context.requestElicit` carry the originating `requestId` so the gateway routes them back to the
    initiating client, while the provider-level `requestSampling`/`requestElicit` are out-of-band —
    answered by `response`, plus one-way `notify` frames (progress, logging, resource-updated). A
-   heartbeat `ping` keeps the socket alive.
+   heartbeat `ping` keeps the socket alive, and if a `pong` does not come back before the next tick
+   the socket is treated as half-open and closed so reconnection can recover it.
 4. On an unexpected close it reconnects with exponential backoff and jitter (unless `reconnect` is
-   false). An explicit `disconnect()` cancels reconnection and aborts every in-flight call.
+   false), and emits `onStatusChange` only on a real transition (`#emitStatus` collapses repeats, so
+   the same status never fires twice in a row). An explicit `disconnect()` stops reconnection (even
+   mid-attempt), aborts every in-flight call, and emits `"disconnected"` when it was connected.
 
 The frame-by-frame contract lives in [docs/protocol.md](docs/protocol.md).
 

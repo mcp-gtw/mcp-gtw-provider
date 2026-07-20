@@ -64,7 +64,9 @@ describe("connecting and registration", () => {
         expect(register.items[0].name).toBe("add");
         expect(sentOf(socket, "register")).toHaveLength(1);
         expect(statuses).toEqual(["connected"]);
+
         provider.disconnect();
+        expect(statuses).toEqual(["connected", "disconnected"]);
     });
 
     it("registers every capability and republishes on unregister", async () => {
@@ -79,6 +81,22 @@ describe("connecting and registration", () => {
         expect(lastOf(socket, "register")).toMatchObject({ registry: "prompts" });
         unregister();
         expect(lastOf(socket, "register")).toMatchObject({ registry: "tools", items: [] });
+        provider.disconnect();
+    });
+
+    it("a stale unregister does not remove a replacement registration", async () => {
+        const provider = new McpGtwProvider({ url: "ws://x" });
+        const socket = await connectProvider(provider);
+
+        const unregisterFirst = provider.registerTool({ name: "t" }, () => "first");
+        provider.registerTool({ name: "t" }, () => "second");
+        socket.sent.length = 0;
+
+        unregisterFirst();
+        expect(sentOf(socket, "register")).toHaveLength(0);
+
+        const answered = await request(socket, "tools/call", { name: "t" });
+        expect(answered.result.content[0].text).toBe("second");
         provider.disconnect();
     });
 
@@ -435,6 +453,9 @@ describe("prompts, completion and logging", () => {
             values: ["b", "c"],
         });
 
+        provider.onComplete = () => undefined;
+        expect((await request(socket, "completion/complete", {})).result).toEqual({ values: [] });
+
         provider.disconnect();
     });
 
@@ -598,6 +619,42 @@ describe("heartbeat, reconnect and disconnect", () => {
         expect(sentOf(socket, "ping")).toHaveLength(1);
     });
 
+    it("closes a half-open socket when a pong is missing", async () => {
+        vi.useFakeTimers();
+        const provider = new McpGtwProvider({
+            url: "ws://x",
+            heartbeatIntervalMs: 1000,
+            reconnect: false,
+        });
+        const promise = provider.connect();
+        FakeWebSocket.last.open();
+        await promise;
+        const socket = FakeWebSocket.last;
+
+        vi.advanceTimersByTime(1000);
+        expect(sentOf(socket, "ping")).toHaveLength(1);
+
+        vi.advanceTimersByTime(1000);
+        expect(socket.closes).toContainEqual({ code: 4000, reason: "Heartbeat timed out" });
+    });
+
+    it("keeps the heartbeat alive while pongs arrive", async () => {
+        vi.useFakeTimers();
+        const provider = new McpGtwProvider({ url: "ws://x", heartbeatIntervalMs: 1000 });
+        const promise = provider.connect();
+        FakeWebSocket.last.open();
+        await promise;
+        const socket = FakeWebSocket.last;
+
+        vi.advanceTimersByTime(1000);
+        socket.deliver({ type: "pong" });
+        vi.advanceTimersByTime(1000);
+
+        expect(sentOf(socket, "ping")).toHaveLength(2);
+        expect(socket.closes).toHaveLength(0);
+        provider.disconnect();
+    });
+
     it("does not reconnect when disabled", async () => {
         vi.useFakeTimers();
         const provider = new McpGtwProvider({ url: "ws://x", reconnect: false });
@@ -647,6 +704,35 @@ describe("heartbeat, reconnect and disconnect", () => {
         provider.disconnect();
         vi.advanceTimersByTime(60_000);
         expect(FakeWebSocket.instances).toHaveLength(1);
+    });
+
+    it("does not resurrect when disconnected during an in-flight reconnect", async () => {
+        vi.useFakeTimers();
+        vi.spyOn(Math, "random").mockReturnValue(0.5);
+        vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const statuses = [];
+        const provider = new McpGtwProvider({
+            url: "ws://x",
+            reconnectMinDelayMs: 100,
+            onStatusChange: (s) => statuses.push(s),
+        });
+        const promise = provider.connect();
+        FakeWebSocket.last.open();
+        await promise;
+
+        FakeWebSocket.last.serverClose();
+        await vi.advanceTimersByTimeAsync(100);
+        const reconnecting = FakeWebSocket.last;
+        expect(reconnecting.readyState).toBe(FakeWebSocket.CONNECTING);
+
+        provider.disconnect();
+        reconnecting.serverClose();
+        await vi.advanceTimersByTimeAsync(60_000);
+
+        expect(FakeWebSocket.instances).toHaveLength(2);
+        expect(provider.connected).toBe(false);
+        expect(statuses).toEqual(["connected", "disconnected"]);
     });
 
     it("aborts running and outgoing calls on disconnect", async () => {

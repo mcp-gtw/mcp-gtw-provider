@@ -1,6 +1,6 @@
 {
     "name": "mcp-gtw-provider",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Framework-agnostic browser provider for the mcp-gtw: publish and run your MCP tools from any web app over WebSocket.",
     "type": "module",
     "license": "MIT",

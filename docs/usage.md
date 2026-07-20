@@ -18,8 +18,8 @@ const provider = new McpGtwProvider({
 | `reconnect` | `true` | Reconnect automatically after an unexpected close. |
 | `reconnectMinDelayMs` | `500` | Backoff before the first reconnect attempt. |
 | `reconnectMaxDelayMs` | `10000` | Cap on the backoff between attempts. |
-| `heartbeatIntervalMs` | `20000` | Interval between `ping` heartbeats while connected. |
-| `onStatusChange` | `null` | Called with `"connected"` or `"disconnected"` on every transition. |
+| `heartbeatIntervalMs` | `20000` | Interval between `ping` heartbeats while connected. A missing `pong` before the next tick closes the socket as half-open so reconnection can recover it. |
+| `onStatusChange` | `null` | Called with `"connected"` or `"disconnected"` on every real transition (the same status never fires twice in a row). |
 
 Constructing without a `url` throws.
 

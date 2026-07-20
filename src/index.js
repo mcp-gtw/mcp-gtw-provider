@@ -21,6 +21,9 @@ export class McpGtwProvider {
         this.onStatusChange = onStatusChange;
 
         this.socket = null;
+        this.stopped = false;
+        this.lastStatus = "disconnected";
+        this.awaitingPong = false;
         this.tools = new Map();
         this.resources = new Map();
         this.resourceTemplates = new Map();
@@ -92,12 +95,15 @@ export class McpGtwProvider {
             throw new Error(`A ${kind} entry needs a string ${key}`);
         }
 
-        registry.set(identifier, { definition: { [key]: identifier, ...extra }, handler });
+        const entry = { definition: { [key]: identifier, ...extra }, handler };
+        registry.set(identifier, entry);
         this.#publish(kind);
 
         return () => {
-            registry.delete(identifier);
-            this.#publish(kind);
+            if (registry.get(identifier) === entry) {
+                registry.delete(identifier);
+                this.#publish(kind);
+            }
         };
     }
 
@@ -118,6 +124,8 @@ export class McpGtwProvider {
     }
 
     async connect() {
+        this.stopped = false;
+
         if (this.connected) {
             return;
         }
@@ -136,6 +144,7 @@ export class McpGtwProvider {
     }
 
     disconnect() {
+        this.stopped = true;
         this.#clearReconnectTimer();
         this.#stopHeartbeat();
         this.#abortAllCalls("Provider disconnected");
@@ -143,6 +152,7 @@ export class McpGtwProvider {
         if (this.socket) {
             this.socket.close(1000, "Provider disconnected");
             this.socket = null;
+            this.#emitStatus("disconnected");
         }
     }
 
@@ -221,7 +231,9 @@ export class McpGtwProvider {
         switch (message.type) {
             case "hello.ack":
             case "ack":
+                return;
             case "pong":
+                this.awaitingPong = false;
                 return;
             case "request":
                 void this.#handleRequest(message);
@@ -272,7 +284,7 @@ export class McpGtwProvider {
             try {
                 this.#send({ type: "result", requestId, error: messageText });
             } catch {
-                // The socket vanished mid-request; the result can no longer be delivered.
+                // The socket vanished mid-request, so the result can no longer be delivered.
             }
         } finally {
             this.runningCalls.delete(requestId);
@@ -409,11 +421,20 @@ export class McpGtwProvider {
 
     #startHeartbeat() {
         this.#stopHeartbeat();
+        this.awaitingPong = false;
 
         this.heartbeatTimer = setInterval(() => {
-            if (this.connected) {
-                this.#send({ type: "ping" });
+            if (!this.connected) {
+                return;
             }
+
+            if (this.awaitingPong) {
+                this.socket.close(4000, "Heartbeat timed out");
+                return;
+            }
+
+            this.awaitingPong = true;
+            this.#send({ type: "ping" });
         }, this.heartbeatIntervalMs);
     }
 
@@ -436,7 +457,10 @@ export class McpGtwProvider {
 
             void this.connect().catch((error) => {
                 console.error("MCP gateway reconnect failed:", error);
-                this.#scheduleReconnect();
+
+                if (!this.stopped) {
+                    this.#scheduleReconnect();
+                }
             });
         }, jitteredDelay);
     }
@@ -463,6 +487,11 @@ export class McpGtwProvider {
     }
 
     #emitStatus(status) {
+        if (status === this.lastStatus) {
+            return;
+        }
+
+        this.lastStatus = status;
         this.onStatusChange?.(status);
     }
 }
@@ -499,6 +528,10 @@ function normalizeResourceResult(uri, value) {
 }
 
 function normalizeCompletion(value) {
+    if (value == null) {
+        return { values: [] };
+    }
+
     if (Array.isArray(value)) {
         return { values: value };
     }
