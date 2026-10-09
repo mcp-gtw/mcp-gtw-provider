@@ -118,3 +118,7 @@ The pattern is always the same: construct with a `url`, register capabilities (`
 `registerResource`, `registerResourceTemplate`, `registerPrompt`, plus the `onComplete` /
 `onSubscribe` callbacks), `connect()` when ready, and `disconnect()` to tear down. Handlers are plain
 functions, so any state management — signals, stores, plain variables — works.
+
+## OAuth boundary
+
+OAuth authorizes the public MCP client; this provider keeps its private provider credential. See [credentials and OAuth](usage.md#oauth-boundary). The JavaScript source and provider protocol are unchanged.

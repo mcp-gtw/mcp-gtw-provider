@@ -83,7 +83,7 @@ you exact control. Throwing turns into an error result.
 ## ✅ Requirements
 
 - A browser, or any runtime with `WebSocket`, `AbortController`, and timers.
-- Node 20+ only to develop this package — tested on 20, 22 and 24 in CI.
+- Node 22.12+ to develop this package — supported CI targets are 22, 24 and 26.
 - A running [`mcp-gtw`](https://github.com/mcp-gtw/mcp-gtw) to connect to.
 
 ## 💜 Support
@@ -94,3 +94,7 @@ If this project saved you time, consider supporting it:
 Made with care by [Paulo Coutinho](https://github.com/paulocoutinhox).
 
 Licensed under [MIT](LICENSE.md).
+
+## OAuth boundary
+
+OAuth authorizes the public MCP client; this provider keeps its private provider credential. See [credentials and OAuth](docs/usage.md#oauth-boundary). The JavaScript source and provider protocol are unchanged.
