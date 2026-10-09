@@ -90,3 +90,7 @@ Sent every `heartbeatIntervalMs` while connected. The gateway replies with `pong
 On an unexpected close the provider reconnects with exponential backoff and jitter (unless `reconnect`
 is `false`), re-publishing every registry once the socket is open again. A new connection for the same
 channel atomically replaces the previous one on the gateway side.
+
+## OAuth boundary
+
+OAuth authorizes the public MCP client; this provider keeps its private provider credential. See [credentials and OAuth](usage.md#oauth-boundary). The JavaScript source and provider protocol are unchanged.

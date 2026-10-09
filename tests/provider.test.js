@@ -773,3 +773,10 @@ describe("heartbeat, reconnect and disconnect", () => {
         expect(reply.error).toBe("MCP gateway WebSocket is not connected");
     });
 });
+
+it("ignores notifications while the provider is disconnected", () => {
+    const provider = new McpGtwProvider({ url: "ws://x" });
+    provider.notifyResourceUpdated("mem://a");
+    provider.log("info", "offline");
+    expect(FakeWebSocket.instances).toHaveLength(0);
+});

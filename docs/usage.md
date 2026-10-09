@@ -216,3 +216,7 @@ rejects.
 After an unexpected close, the provider reconnects automatically (when `reconnect` is `true`) with
 exponential backoff and jitter between `reconnectMinDelayMs` and `reconnectMaxDelayMs`. Call
 `disconnect()` to stop reconnecting and release everything.
+
+## OAuth boundary
+
+OAuth authorizes the public MCP client connection to the gateway. This SDK connects only to the private provider WebSocket with its provider credential; never pass an MCP access token, browser cookie or BFF ticket into its URL. Obtain provider credentials from your own authenticated server and keep the configured provider Origin policy. The game uses an in-process Python LocalProvider, not this package. SDK source unchanged: not required for OAuth client authorization. The provider protocol remains `mcp-gtw-provider/1`, with no runtime OAuth dependency. Development uses supported Node 22/24/26 and the updated Vitest/Biome toolchain.

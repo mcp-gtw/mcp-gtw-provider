@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
 Guidance for working in this repository.
 
 ## How to use this file
 
-**CLAUDE.md is a map, not a copy.** Each subject gets a one-line essence here and a pointer to the
+**AGENTS.md is a map, not a copy.** Each subject gets a one-line essence here and a pointer to the
 doc that owns the full detail. Never duplicate doc content into this file — when the code changes,
 update the doc and keep the pointer accurate. This file is the source of truth for the conventions
 and repo mechanics that have no doc. The docs own behaviour:
@@ -117,3 +117,5 @@ The one-time setup on npmjs.com has **two separate parts** — both are required
 
 Doing only step 2 disallows tokens while leaving OIDC unconfigured, so every publish fails with a
 404/`ENEEDAUTH` — configure the trusted publisher first.
+
+- **OAuth** — public MCP authorization and private provider credential boundaries: [docs/usage.md](docs/usage.md).
