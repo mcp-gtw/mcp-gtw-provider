@@ -15,6 +15,12 @@ and repo mechanics that have no doc. The docs own behaviour:
 - **Protocol** — the private WebSocket frames this module speaks: [docs/protocol.md](docs/protocol.md).
 - **Frameworks** — vanilla JS, React and Vue integration: [docs/frameworks.md](docs/frameworks.md).
 
+- **OAuth** — public MCP authorization and private provider credential boundaries: [docs/usage.md](docs/usage.md).
+
+- **Coordinated OAuth integration** — the gateway acceptance workflow checks out this SDK and both
+  Python consumers by full SHA and exercises real Token/OAuth providers. It does not change the
+  provider API or put OAuth credentials into the SDK. [Gateway acceptance checklist](../mcp-gtw/docs/oauth-implementation-checklist.md).
+
 ## What this is
 
 `mcp-gtw-provider` is the JavaScript client library for [`mcp-gtw`](https://github.com/mcp-gtw/mcp-gtw).
@@ -78,8 +84,8 @@ The frame-by-frame contract lives in [docs/protocol.md](docs/protocol.md).
 ## Supported runtimes
 
 - Ships for any runtime with `WebSocket`, `AbortController`, and timers (browsers first of all).
-- Development targets Node **20+**. `.nvmrc` pins **20**; CI (`.github/workflows/ci.yml`) runs the
-  `make lint` + `make coverage` matrix across Node **20, 22, 24**.
+- Development targets Node **22.12+**. `.nvmrc` pins **24**; CI (`.github/workflows/ci.yml`) runs the
+  `make lint` + `make coverage` matrix across Node **22.12 (minimum), 22, 24, 26**.
 
 ## Documentation policy
 
@@ -91,7 +97,7 @@ does as a bug. The wire frames here must match `mcp-gtw`'s provider protocol.
 ## Commands
 
 ```bash
-make install       # npm install
+make install       # npm ci
 make lint          # biome check
 make format        # biome check --write (apply formatting and safe fixes)
 make test          # vitest run
@@ -107,7 +113,7 @@ validated), then push a matching `v<version>` tag. `.github/workflows/release.ym
 equals the `package.json` version, runs lint + the coverage gate, and `npm publish --access public`.
 
 Publishing uses npm **Trusted Publishing** (OIDC) — no `NPM_TOKEN` secret. The workflow grants
-`id-token: write` and upgrades the npm CLI to `>= 11.5.1`, and provenance is generated automatically.
+`id-token: write` and pins the npm CLI to `12.2.0`, and provenance is generated automatically.
 The one-time setup on npmjs.com has **two separate parts** — both are required:
 
 1. **Trusted Publisher** → *Select your publisher* → **GitHub Actions**, then organization `mcp-gtw`,
@@ -117,5 +123,3 @@ The one-time setup on npmjs.com has **two separate parts** — both are required
 
 Doing only step 2 disallows tokens while leaving OIDC unconfigured, so every publish fails with a
 404/`ENEEDAUTH` — configure the trusted publisher first.
-
-- **OAuth** — public MCP authorization and private provider credential boundaries: [docs/usage.md](docs/usage.md).
