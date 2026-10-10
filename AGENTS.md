@@ -108,6 +108,10 @@ make build         # npm pack (the publishable tarball)
 
 ## Versioning and releasing
 
+Wait for a dependency version to be published to PyPI or npm before updating another project's
+dependency. Consumer dependencies must use published registry versions, never Git commit hashes,
+branches, sibling source checkouts or locally built replacement wheels.
+
 `package.json` is the single source of the version. Bump with `make version v=X.Y.Z` (semver,
 validated), then push a matching `v<version>` tag. `.github/workflows/release.yml` verifies the tag
 equals the `package.json` version, runs lint + the coverage gate, and `npm publish --access public`.
